@@ -8,7 +8,6 @@ public class Map {
     public Map(int width, int height, List<Location> waypoints) {
         this.grid = new Grid(width, height);
         this.path = new Path(waypoints);
-        // Assuming the base is at the end of the path
         this.baseLocation = waypoints.get(waypoints.size() - 1);
     }
 

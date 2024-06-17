@@ -56,7 +56,7 @@ public class GameCanvas extends JPanel {
             new Point(600, 830),
             new Point(1130, 830),
             new Point(1130, 500),
-            new Point(2000, 500) // This point is off the screen, to remove the enemy
+            new Point(2000, 500)
     };
 
     private final Point[] mediumWaypoints = {
@@ -64,12 +64,12 @@ public class GameCanvas extends JPanel {
             new Point(500, 620),
             new Point(600, 510),
             new Point(420, 270),
-            new Point(2000, 270)// This point is off the screen, to remove the enemy
+            new Point(2000, 270)
     };
 
     public GameCanvas(Game game) {
         this.game = game;
-        this.currentScreen = "MainMenu"; // Start with the main menu
+        this.currentScreen = "MainMenu";
         this.placedTowers = new ArrayList<>();
         this.enemies = new ArrayList<>();
         setPreferredSize(new Dimension(1920, 1080));
@@ -131,7 +131,6 @@ public class GameCanvas extends JPanel {
         });
         easyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Set the game difficulty to Easy and display the easy map
                 game.setDifficulty(Difficulty.EASY);
                 totalWaves = 6;
                 setCurrentScreen("GameEasy");
@@ -140,7 +139,6 @@ public class GameCanvas extends JPanel {
         });
         mediumButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Set the game difficulty to Medium and display the medium map
                 game.setDifficulty(Difficulty.MEDIUM);
                 totalWaves = 10;
                 setCurrentScreen("GameMedium");
@@ -153,7 +151,6 @@ public class GameCanvas extends JPanel {
             }
         });
 
-        // Add buttons to panel
         add(playButton);
         add(howToPlayButton);
         add(creditsButton);
@@ -162,13 +159,11 @@ public class GameCanvas extends JPanel {
         add(mediumButton);
         add(upgradeButton);
 
-        // Hide back button initially
         backButton.setVisible(false);
         easyButton.setVisible(false);
         mediumButton.setVisible(false);
         upgradeButton.setVisible(false);
 
-        // Add mouse listener for tower placement
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -176,10 +171,8 @@ public class GameCanvas extends JPanel {
             }
         });
 
-        // Update button positions initially
         updateButtons();
 
-        // Start the enemy movement timer
         startEnemyMovement();
     }
 
@@ -271,7 +264,7 @@ public class GameCanvas extends JPanel {
     @Override
     public void doLayout() {
         super.doLayout();
-        updateButtons(); // Ensure buttons are positioned correctly when layout changes
+        updateButtons();
     }
 
     @Override
@@ -293,21 +286,21 @@ public class GameCanvas extends JPanel {
                 break;
             case "GameEasy":
                 drawGameMap(g, easyMapImage);
-                drawHUD(g); // Draw the HUD on top of the map
+                drawHUD(g);
                 drawCountdown(g);
-                drawTowerSelectionPanel(g); // Draw the tower selection panel
-                drawPlacedTowers(g); // Draw placed towers
-                drawEnemies(g); // Draw enemies
-                drawTowerUpgradePanel(g); // Draw tower upgrade panel
+                drawTowerSelectionPanel(g);
+                drawPlacedTowers(g);
+                drawEnemies(g);
+                drawTowerUpgradePanel(g);
                 break;
             case "GameMedium":
                 drawGameMap(g, mediumMapImage);
-                drawHUD(g); // Draw the HUD on top of the map
+                drawHUD(g);
                 drawCountdown(g);
-                drawTowerSelectionPanel(g); // Draw the tower selection panel
-                drawPlacedTowers(g); // Draw placed towers
-                drawEnemies(g); // Draw enemies
-                drawTowerUpgradePanel(g); // Draw tower upgrade panel
+                drawTowerSelectionPanel(g);
+                drawPlacedTowers(g);
+                drawEnemies(g);
+                drawTowerUpgradePanel(g);
                 break;
             default:
                 drawMainMenu(g);
@@ -402,7 +395,6 @@ public class GameCanvas extends JPanel {
     }
 
     private void drawHUD(Graphics g) {
-        // Draw HUD elements such as coins, health, and waves
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 24));
         g.drawString("Health: " + game.getPlayer().getHealth(), 10, 20);
@@ -482,7 +474,6 @@ public class GameCanvas extends JPanel {
             int mouseX = e.getX();
             int mouseY = e.getY();
 
-            // Check if a tower button is clicked
             if (mouseX >= 15 && mouseX <= 55) {
                 if (mouseY >= getHeight() - 30 - 40 && mouseY <= getHeight() - 30) {
                     selectedTower = "Archer";
@@ -500,7 +491,6 @@ public class GameCanvas extends JPanel {
                 selectedTowerPosition = e.getPoint();
                 repaint();
             } else {
-                // Check if a placed tower is clicked
                 for (PlacedTower placedTower : placedTowers) {
                     if (placedTower.contains(mouseX, mouseY)) {
                         selectedPlacedTower = placedTower;
@@ -509,7 +499,6 @@ public class GameCanvas extends JPanel {
                     }
                 }
 
-                // Place the tower on the map
                 if (selectedTower != null) {
                     selectedTowerPosition = e.getPoint();
                     Image towerImage = getTowerImage(selectedTower);
@@ -625,120 +614,83 @@ public class GameCanvas extends JPanel {
             public void run() {
                 if (currentWave < totalWaves) {
                     currentWave++;
-                    Point spawnPoint = new Point(0, 570); // Default spawn point for easy map
-                    Point[] waypoints = easyWaypoints; // Default waypoints for easy map
+                    Point spawnPoint = new Point(0, 570);
+                    Point[] waypoints = easyWaypoints;
                     if (currentScreen.equals("GameMedium")) {
-                        spawnPoint = new Point(0, 500); // Adjust spawn point for medium map
-                        waypoints = mediumWaypoints; // Waypoints for medium map
+                        spawnPoint = new Point(0, 500);
+                        waypoints = mediumWaypoints;
                     }
-                    generateEnemiesForWave(currentWave, spawnPoint, waypoints);
+                    generateEnemiesForWave(currentScreen, currentWave, spawnPoint, waypoints);
                     repaint();
                 } else {
                     waveTimer.cancel();
                 }
             }
-        }, 0, 15000); // Adjust the interval as needed for wave spacing
+        }, 0, 15000);
     }
 
-    private void generateEnemiesForWave(int waveNumber, Point spawnPoint, Point[] waypoints) {
-        switch (currentScreen) {
-            case "GameEasy":
-                switch (waveNumber) {
-                    case 1:
-                        for (int i = 0; i < 5; i++) {
-                            enemies.add(new Slug(slugImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 2:
-                        for (int i = 0; i < 3; i++) {
-                            enemies.add(new Slug(slugImage, spawnPoint, waypoints));
-                            enemies.add(new Snail(snailImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 3:
-                        for (int i = 0; i < 2; i++) {
-                            enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
-                            enemies.add(new Worm(wormImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 4:
-                        for (int i = 0; i < 4; i++) {
-                            enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
-                            enemies.add(new Worm(wormImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 5:
-                        enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
-                        for (int i = 0; i < 2; i++) {
-                            enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 6:
-                        enemies.add(new Blobfish(blobfishImage, spawnPoint, waypoints));
-                        break;
+    private void generateEnemiesForWave(String currentScreen, int waveNumber, Point spawnPoint, Point[] waypoints) {
+        if (currentScreen.equals("GameEasy")) {
+            if (waveNumber == 1) {
+                for (int i = 0; i < 1; i++) {
+                    enemies.add(new Slug(slugImage, spawnPoint, waypoints));
                 }
-                break;
-            case "GameMedium":
-                switch (waveNumber) {
-                    case 1:
-                        for (int i = 0; i < 3; i++) {
-                            enemies.add(new Snail(snailImage, spawnPoint, waypoints));
-                            enemies.add(new Slug(slugImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 2:
-                        for (int i = 0; i < 5; i++) {
-                            enemies.add(new Snail(snailImage, spawnPoint, waypoints));
-                        }
-                        for (int i = 0; i < 3; i++) {
-                            enemies.add(new Slug(slugImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 3:
-                        for (int i = 0; i < 3; i++) {
-                            enemies.add(new Worm(wormImage, spawnPoint, waypoints));
-                            enemies.add(new Snail(snailImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 4:
-                        enemies.add(new BigSnail(bigSnailImage, spawnPoint, waypoints));
-                        for (int i = 0; i < 2; i++) {
-                            enemies.add(new Worm(wormImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 5:
-                        enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
-                        for (int i = 0; i < 5; i++) {
-                            enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 6:
-                        enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
-                        break;
-                    case 7:
-                        enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
-                        enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
-                        break;
-                    case 8:
-                        for (int i = 0; i < 2; i++) {
-                            enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 9:
-                        enemies.add(new BigSnake(bigSnakeImage, spawnPoint, waypoints));
-                        enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
-                        for (int i = 0; i < 5; i++) {
-                            enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
-                        }
-                        break;
-                    case 10:
-                        enemies.add(new EnragedBlobfish(enragedBlobfishImage, spawnPoint, waypoints));
-                        for (int i = 0; i < 5; i++) {
-                            enemies.add(new Worm(wormImage, spawnPoint, waypoints));
-                        }
-                        break;
+            } else if (waveNumber == 2) {
+                for (int i = 0; i < 2; i++) {
+                    enemies.add(new Snail(snailImage, spawnPoint, waypoints));
                 }
-                break;
+            } else if (waveNumber == 3) {
+                for (int i = 0; i < 1; i++) {
+                    enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 4) {
+                for (int i = 0; i < 1; i++) {
+                    enemies.add(new Snake(bigSlugImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 5) {
+                enemies.add(new BigSlug(bigSnailImage, spawnPoint, waypoints));
+                for (int i = 0; i < 1; i++) {
+                    enemies.add(new Snake(snailImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 6) {
+                enemies.add(new Blobfish(blobfishImage, spawnPoint, waypoints));
+            }
+        } else if (currentScreen.equals("GameMedium")) {
+            if (waveNumber == 1) {
+                for (int i = 0; i < 1; i++) {
+                    enemies.add(new Snail(wormImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 2) {
+                for (int i = 0; i < 1; i++) {
+                    enemies.add(new Snail(snakeImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 3) {
+                for (int i = 0; i < 2; i++) {
+                    enemies.add(new Worm(wormImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 4) {
+                enemies.add(new BigSnail(bigSnailImage, spawnPoint, waypoints));
+            } else if (waveNumber == 5) {
+                enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
+                for (int i = 0; i < 1; i++) {
+                    enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 6) {
+                enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
+            } else if (waveNumber == 7) {
+                enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
+                enemies.add(new BigSlug(snailImage, spawnPoint, waypoints));
+            } else if (waveNumber == 8) {
+                    enemies.add(new BigWorm(bigSnakeImage, spawnPoint, waypoints));
+
+            } else if (waveNumber == 9) {
+                enemies.add(new BigSnake(bigSnakeImage, spawnPoint, waypoints));
+                for (int i = 0; i < 2; i++) {
+                    enemies.add(new Snake(snailImage, spawnPoint, waypoints));
+                }
+            } else if (waveNumber == 10) {
+                enemies.add(new EnragedBlobfish(enragedBlobfishImage, spawnPoint, waypoints));
+            }
         }
     }
 
@@ -752,7 +704,7 @@ public class GameCanvas extends JPanel {
                 }
                 repaint();
             }
-        }, 0, 30); // Adjust the interval as needed for smoother movement
+        }, 0, 30);
     }
 
     private static class PlacedTower {

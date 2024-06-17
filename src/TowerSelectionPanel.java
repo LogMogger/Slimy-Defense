@@ -1,12 +1,14 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Dimension;
 
 public class TowerSelectionPanel {
     private List<Tower> towers;
 
     public TowerSelectionPanel() {
         towers = new ArrayList<>();
-        // Add tower types to the selection panel
         towers.add(new Archer());
         towers.add(new Cannon());
         towers.add(new Gladiator());

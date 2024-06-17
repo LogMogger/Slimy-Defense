@@ -1,3 +1,6 @@
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Dimension;
 public class Bomber extends Tower {
     public Bomber() {
         super(10, 4.0, 6, 1.5, 125, false);
@@ -9,7 +12,7 @@ public class Bomber extends Tower {
 
     @Override
     public void upgrade() {
-        if (this.level >= 4) return; // Cap at level 4
+        if (this.level >= 4) return;
         super.upgrade();
         if (this.level == 2) {
             this.damage = 30;

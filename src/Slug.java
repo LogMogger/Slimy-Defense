@@ -6,23 +6,18 @@ public class Slug extends Enemy {
 
     @Override
     public void move() {
-        // Implement the movement logic specific to Slug
-        // For simplicity, let's just move the slug horizontally
         currentPosition.setX(currentPosition.getX() + (int)speed);
         System.out.println("Slug moves with speed: " + this.speed);
     }
 
     @Override
     public void attack(Base base) {
-        // Implement the attack logic specific to Slug
-        // For simplicity, let's just decrease the base health
-        base.decreaseHealth(health); // Example: Decrease base health by 1
+        base.decreaseHealth(health);
         System.out.println("Slug attacks.");
     }
 
     @Override
     public void render() {
-        // Logic to render the Slug
         System.out.println("Rendering Slug at position: " + currentPosition);
     }
 }

@@ -16,6 +16,6 @@ public class MainMenu {
     }
 
     public void handleCreditsButton() {
-        System.out.println("Game developed by [Your Name].");
+        System.out.println("Game developed by Logan, Arman, Swhaib");
     }
 }

@@ -61,7 +61,7 @@ public abstract class Tower {
         this.range += 2;
         this.splashAOE *= 1.2;
         this.upgradeCost *= 2;
-        this.canDetectHidden = this.canDetectHidden || (level >= 3); // Example: Hidden detection unlocks at level 3
+        this.canDetectHidden = this.canDetectHidden || (level >= 3);
     }
 
     public abstract void attack();

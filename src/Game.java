@@ -26,14 +26,13 @@ public class Game {
             case EASY:
                 player.setCoins(100000);
                 player.setHealth(100);
-                waveManager = new WaveManager(7, 1.0f); // Easy difficulty: 7 waves
+                waveManager = new WaveManager(7, 1.0f);
                 break;
             case MEDIUM:
                 player.setCoins(100000);
                 player.setHealth(100);
-                waveManager = new WaveManager(15, 0.8f); // Medium difficulty: 15 waves
+                waveManager = new WaveManager(15, 0.8f);
                 break;
-            // Add other cases if needed
         }
     }
 }

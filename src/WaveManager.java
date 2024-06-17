@@ -18,7 +18,6 @@ public class WaveManager {
         this.spawnInterval = spawnInterval;
         this.waveInProgress = false;
 
-        // Initialize waves (example, you can customize this as needed)
         for (int i = 0; i < totalWaves; i++) {
             waves.add(new Wave(generateEnemiesForWave(i + 1)));
         }
@@ -26,7 +25,6 @@ public class WaveManager {
 
     private List<Enemy> generateEnemiesForWave(int waveNumber) {
         List<Enemy> enemies = new ArrayList<>();
-        // Example: Add a slug for each waveNumber (customize this logic as needed)
         for (int i = 0; i < waveNumber; i++) {
             enemies.add(new Slug(10, 1.0, 5, false, new Path(generatePath())));
         }
@@ -35,7 +33,6 @@ public class WaveManager {
 
     private List<Location> generatePath() {
         List<Location> path = new ArrayList<>();
-        // Example path (customize this as needed)
         path.add(new Location(0, 250));
         path.add(new Location(300, 250));
         path.add(new Location(300, 450));
@@ -57,7 +54,6 @@ public class WaveManager {
                 public void run() {
                     if (enemyIndex < currentWave.getEnemies().size()) {
                         Enemy enemy = currentWave.getEnemies().get(enemyIndex);
-                        // Spawn the enemy (you need to implement the logic to handle the enemy in the game)
                         spawnEnemy(enemy);
                         enemyIndex++;
                     } else {
@@ -85,7 +81,6 @@ public class WaveManager {
                 if (currentWaveIndex < totalWaves) {
                     startWave();
                 } else {
-                    // All waves completed (you can add your game completion logic here)
                     System.out.println("All waves completed!");
                 }
             }
@@ -93,7 +88,6 @@ public class WaveManager {
     }
 
     private void spawnEnemy(Enemy enemy) {
-        // Logic to add the enemy to the game and start its movement (to be implemented)
         System.out.println("Spawning enemy at position: " + enemy.getCurrentPosition());
     }
 

@@ -15,8 +15,7 @@ public class ImageManager {
     }
 
     public Image loadImage(String filePath) {
-        // Logic to load an image from file
-        return new ImageIcon(filePath).getImage(); // Using ImageIcon to load the image
+        return new ImageIcon(filePath).getImage();
     }
 
     public Image getMapImage(String mapName) {

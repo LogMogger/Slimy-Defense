@@ -22,7 +22,7 @@ public class GameFrame extends JFrame {
 
         setupMenu();
     }
-
+// DO NOT TOUCH - logan
     private void setupMenu() {
         JMenuBar menuBar = new JMenuBar();
 

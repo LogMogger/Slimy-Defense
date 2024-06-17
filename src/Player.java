@@ -36,7 +36,6 @@ public class Player {
         if (this.coins >= amount) {
             this.coins -= amount;
         } else {
-            // Handle the case where the player does not have enough coins
             System.out.println("Not enough coins!");
         }
     }

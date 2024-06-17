@@ -9,7 +9,7 @@ public class Cannon extends Tower {
 
     @Override
     public void upgrade() {
-        if (this.level >= 4) return; // Cap at level 4
+        if (this.level >= 4) return;
         super.upgrade();
         if (this.level == 2) {
             this.damage = 180;

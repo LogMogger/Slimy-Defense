@@ -8,7 +8,6 @@ import java.util.List;
 // 5. Select Local > Master > right click > push
 public class Main {
     public static void main(String[] args) {
-        // Create the game components
         List<Location> waypoints = List.of(
                 new Location(0, 250),
                 new Location(300, 250),
@@ -22,15 +21,14 @@ public class Main {
         Player player = new Player(100, 100);
         Game game = new Game(map, waveManager, player);
 
-        // Create the game canvas
         GameCanvas gameCanvas = new GameCanvas(game);
 
-        // Create the frame
         JFrame frame = new JFrame("Slimy Defense");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setContentPane(gameCanvas);
-        frame.setSize(1920, 1080); // Set the frame size
+        frame.setSize(1920, 1080);
         frame.setResizable(false);
         frame.setVisible(true);
     }
 }
+
