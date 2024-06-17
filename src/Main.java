@@ -1,6 +1,11 @@
 import javax.swing.*;
 import java.util.List;
-// this is my update:
+// Git update steps
+// 1. right click the folder in folder view and select "Git > Add"
+// 2. right click the folder in folder view and click commit
+// 3. Enter the commit message and commit the change
+// 4. open the version control menu from the left icon row
+// 5. Select Local > Master > right click > push
 public class Main {
     public static void main(String[] args) {
         // Create the game components
