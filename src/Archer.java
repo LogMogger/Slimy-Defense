@@ -5,13 +5,12 @@ public class Archer extends Tower {
 
     @Override
     public void attack() {
-
         System.out.println("Archer damage: " + this.damage);
-        //values should be working for attack()
     }
 
     @Override
     public void upgrade() {
+        if (this.level >= 4) return; // Cap at level 4
         super.upgrade();
         if (this.level == 2) {
             this.damage = 10;
@@ -31,4 +30,3 @@ public class Archer extends Tower {
         }
     }
 }
-

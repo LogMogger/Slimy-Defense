@@ -7,11 +7,11 @@ public class WaveManager {
     private List<Wave> waves;
     private int currentWaveIndex;
     private int totalWaves;
-    private float spawnInterval;
+    private double spawnInterval;
     private Timer waveTimer;
     private boolean waveInProgress;
 
-    public WaveManager(int totalWaves, float spawnInterval) {
+    public WaveManager(int totalWaves, double spawnInterval) {
         this.waves = new ArrayList<>();
         this.currentWaveIndex = 0;
         this.totalWaves = totalWaves;
@@ -36,12 +36,12 @@ public class WaveManager {
     private List<Location> generatePath() {
         List<Location> path = new ArrayList<>();
         // Example path (customize this as needed)
-        path.add(new Location(0, 250, null));
-        path.add(new Location(300, 250, null));
-        path.add(new Location(300, 450, null));
-        path.add(new Location(600, 450, null));
-        path.add(new Location(600, 250, null));
-        path.add(new Location(900, 250, null));
+        path.add(new Location(0, 250));
+        path.add(new Location(300, 250));
+        path.add(new Location(300, 450));
+        path.add(new Location(600, 450));
+        path.add(new Location(600, 250));
+        path.add(new Location(900, 250));
         return path;
     }
 

@@ -1,5 +1,4 @@
 public class Cannon extends Tower {
-
     public Cannon() {
         super(100, 2.0, 7, 0.0, 500, false);
     }
@@ -10,6 +9,7 @@ public class Cannon extends Tower {
 
     @Override
     public void upgrade() {
+        if (this.level >= 4) return; // Cap at level 4
         super.upgrade();
         if (this.level == 2) {
             this.damage = 180;
@@ -28,5 +28,3 @@ public class Cannon extends Tower {
         }
     }
 }
-
-

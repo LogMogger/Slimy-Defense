@@ -18,9 +18,12 @@ public class GameCanvas extends JPanel {
     private Image cannonImage;
     private Image fireMageImage;
     private Image catapultImage;
+    private Image slugImage;
     private String selectedTower;
     private Point selectedTowerPosition;
     private List<PlacedTower> placedTowers;
+    private List<Enemy> enemies;
+    private PlacedTower selectedPlacedTower;
 
     private JButton playButton;
     private JButton howToPlayButton;
@@ -28,14 +31,20 @@ public class GameCanvas extends JPanel {
     private JButton backButton;
     private JButton easyButton;
     private JButton mediumButton;
+    private JButton upgradeButton;
 
     private int countdown = 10;
+    private int currentWave = 0;
+    private int totalWaves = 0;
     private Timer timer;
+    private Timer waveTimer;
+    private Timer enemyTimer;
 
     public GameCanvas(Game game) {
         this.game = game;
         this.currentScreen = "MainMenu"; // Start with the main menu
         this.placedTowers = new ArrayList<>();
+        this.enemies = new ArrayList<>();
         setPreferredSize(new Dimension(1920, 1080));
         setLayout(null);
 
@@ -45,11 +54,12 @@ public class GameCanvas extends JPanel {
 
         // Load tower images
         archerImage = loadImage("archer.png");
-        gladiatorImage = loadImage("gladiator.jpeg");
+        gladiatorImage = loadImage("gladiator.png");
         bomberImage = loadImage("bomber.png");
-        cannonImage = loadImage("cannon.jpg");
-        fireMageImage = loadImage("fireMage.jpg");
+        cannonImage = loadImage("cannon.png");
+        fireMageImage = loadImage("fireMage.png");
         catapultImage = loadImage("catapult.png");
+        slugImage = loadImage("slug.png");
 
         // Initialize buttons
         playButton = createButton("Play", 200);
@@ -58,6 +68,7 @@ public class GameCanvas extends JPanel {
         backButton = createButton("Back", 850);
         easyButton = createButton("Easy", 200);
         mediumButton = createButton("Medium", 250);
+        upgradeButton = createButton("Upgrade", getWidth() - 250);
 
         // Add action listeners
         playButton.addActionListener(new ActionListener() {
@@ -84,6 +95,8 @@ public class GameCanvas extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 // Set the game difficulty to Easy and display the easy map
                 game.setDifficulty(Difficulty.EASY);
+                totalWaves = 6;
+                currentWave = 0;
                 setCurrentScreen("GameEasy");
                 startCountdown();
             }
@@ -92,8 +105,15 @@ public class GameCanvas extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 // Set the game difficulty to Medium and display the medium map
                 game.setDifficulty(Difficulty.MEDIUM);
+                totalWaves = 10;
+                currentWave = 0;
                 setCurrentScreen("GameMedium");
                 startCountdown();
+            }
+        });
+        upgradeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                handleUpgradeTower();
             }
         });
 
@@ -104,11 +124,13 @@ public class GameCanvas extends JPanel {
         add(backButton);
         add(easyButton);
         add(mediumButton);
+        add(upgradeButton);
 
         // Hide back button initially
         backButton.setVisible(false);
         easyButton.setVisible(false);
         mediumButton.setVisible(false);
+        upgradeButton.setVisible(false);
 
         // Add mouse listener for tower placement
         addMouseListener(new MouseAdapter() {
@@ -120,6 +142,9 @@ public class GameCanvas extends JPanel {
 
         // Update button positions initially
         updateButtons();
+
+        // Start the enemy movement timer
+        startEnemyMovement();
     }
 
     private JButton createButton(String text, int yPosition) {
@@ -144,6 +169,7 @@ public class GameCanvas extends JPanel {
         backButton.setBounds(centerX, 850, 200, 50);
         easyButton.setBounds(centerX, 200, 200, 50);
         mediumButton.setBounds(centerX, 250, 200, 50);
+        upgradeButton.setBounds(size.width - 310, size.height - 30, 300, 30);
 
         switch (currentScreen) {
             case "MainMenu":
@@ -153,6 +179,7 @@ public class GameCanvas extends JPanel {
                 backButton.setVisible(false);
                 easyButton.setVisible(false);
                 mediumButton.setVisible(false);
+                upgradeButton.setVisible(false);
                 break;
             case "MapSelection":
                 playButton.setVisible(false);
@@ -161,6 +188,7 @@ public class GameCanvas extends JPanel {
                 backButton.setVisible(true);
                 easyButton.setVisible(true);
                 mediumButton.setVisible(true);
+                upgradeButton.setVisible(false);
                 break;
             case "HowToPlay":
             case "Credits":
@@ -170,6 +198,7 @@ public class GameCanvas extends JPanel {
                 backButton.setVisible(true);
                 easyButton.setVisible(false);
                 mediumButton.setVisible(false);
+                upgradeButton.setVisible(false);
                 break;
             case "GameEasy":
             case "GameMedium":
@@ -179,6 +208,7 @@ public class GameCanvas extends JPanel {
                 backButton.setVisible(true);
                 easyButton.setVisible(false);
                 mediumButton.setVisible(false);
+                upgradeButton.setVisible(selectedPlacedTower != null && selectedPlacedTower.tower.getLevel() < 4);
                 break;
             default:
                 playButton.setVisible(true);
@@ -187,6 +217,7 @@ public class GameCanvas extends JPanel {
                 backButton.setVisible(false);
                 easyButton.setVisible(false);
                 mediumButton.setVisible(false);
+                upgradeButton.setVisible(false);
                 break;
         }
     }
@@ -230,6 +261,8 @@ public class GameCanvas extends JPanel {
                 drawCountdown(g);
                 drawTowerSelectionPanel(g); // Draw the tower selection panel
                 drawPlacedTowers(g); // Draw placed towers
+                drawEnemies(g); // Draw enemies
+                drawTowerUpgradePanel(g); // Draw tower upgrade panel
                 break;
             case "GameMedium":
                 drawGameMap(g, mediumMapImage);
@@ -237,6 +270,8 @@ public class GameCanvas extends JPanel {
                 drawCountdown(g);
                 drawTowerSelectionPanel(g); // Draw the tower selection panel
                 drawPlacedTowers(g); // Draw placed towers
+                drawEnemies(g); // Draw enemies
+                drawTowerUpgradePanel(g); // Draw tower upgrade panel
                 break;
             default:
                 drawMainMenu(g);
@@ -336,6 +371,7 @@ public class GameCanvas extends JPanel {
         g.setFont(new Font("Arial", Font.PLAIN, 24));
         g.drawString("Health: " + game.getPlayer().getHealth(), 10, 20);
         g.drawString("Coins: " + game.getPlayer().getCoins(), 10, 50);
+        g.drawString("Waves: " + currentWave + "/" + totalWaves, 10, 80); // Draw the wave counter
     }
 
     private void drawCountdown(Graphics g) {
@@ -369,7 +405,40 @@ public class GameCanvas extends JPanel {
 
     private void drawPlacedTowers(Graphics g) {
         for (PlacedTower placedTower : placedTowers) {
-            g.drawImage(placedTower.image, placedTower.position.x - 50, placedTower.position.y - 50, 100, 100, this);
+            g.drawImage(placedTower.image, placedTower.position.x - 50, placedTower.position.y - 50, 140, 140, this);
+        }
+    }
+
+    private void drawEnemies(Graphics g) {
+        for (Enemy enemy : enemies) {
+            g.drawImage(enemy.image, enemy.position.x, enemy.position.y, 100, 100, this); // Double size to 100x100
+        }
+    }
+
+
+    private void drawTowerUpgradePanel(Graphics g) {
+        if (selectedPlacedTower != null) {
+            Tower tower = selectedPlacedTower.tower;
+            g.setColor(Color.BLACK);
+            g.fillRect(getWidth() - 310, getHeight() - 310, 300, 300);
+
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.PLAIN, 16));
+            g.drawString("Tower Type: " + tower.getClass().getSimpleName(), getWidth() - 300, getHeight() - 280);
+            g.drawString("Level: " + tower.getLevel(), getWidth() - 300, getHeight() - 260);
+            g.drawString("Damage: " + tower.getDamage(), getWidth() - 300, getHeight() - 240);
+            g.drawString("Fire Rate: " + tower.getFireRate(), getWidth() - 300, getHeight() - 220);
+            g.drawString("Range: " + tower.getRange(), getWidth() - 300, getHeight() - 200);
+            g.drawString("Splash AOE: " + tower.getSplashAOE(), getWidth() - 300, getHeight() - 180);
+            g.drawString("Can Detect Hidden: " + tower.canDetectHidden(), getWidth() - 300, getHeight() - 160);
+            if (tower.getLevel() < 4) {
+                g.drawString("Upgrade Cost: $" + tower.getUpgradeCost(), getWidth() - 300, getHeight() - 140);
+                upgradeButton.setVisible(true);
+            } else {
+                upgradeButton.setVisible(false);
+            }
+        } else {
+            upgradeButton.setVisible(false);
         }
     }
 
@@ -396,6 +465,15 @@ public class GameCanvas extends JPanel {
                 selectedTowerPosition = e.getPoint();
                 repaint();
             } else {
+                // Check if a placed tower is clicked
+                for (PlacedTower placedTower : placedTowers) {
+                    if (placedTower.contains(mouseX, mouseY)) {
+                        selectedPlacedTower = placedTower;
+                        repaint();
+                        return;
+                    }
+                }
+
                 // Place the tower on the map
                 if (selectedTower != null) {
                     selectedTowerPosition = e.getPoint();
@@ -404,7 +482,12 @@ public class GameCanvas extends JPanel {
                         int cost = getTowerCost(selectedTower);
                         if (game.getPlayer().getCoins() >= cost) {
                             game.getPlayer().subtractCoins(cost);
-                            placedTowers.add(new PlacedTower(towerImage, selectedTowerPosition));
+                            Tower tower = createTower(selectedTower);
+                            assert tower != null;
+                            tower.setLocation(new Location(selectedTowerPosition.x, selectedTowerPosition.y));
+                            placedTowers.add(new PlacedTower(tower, towerImage, selectedTowerPosition));
+                            selectedTower = null;
+                            selectedTowerPosition = null;
                         }
                     }
                     repaint();
@@ -451,6 +534,37 @@ public class GameCanvas extends JPanel {
         }
     }
 
+    private Tower createTower(String towerType) {
+        switch (towerType) {
+            case "Archer":
+                return new Archer();
+            case "Gladiator":
+                return new Gladiator();
+            case "Bomber":
+                return new Bomber();
+            case "Cannon":
+                return new Cannon();
+            case "Fire Mage":
+                return new FireMage();
+            case "Catapult":
+                return new Catapult();
+            default:
+                return null;
+        }
+    }
+
+    private void handleUpgradeTower() {
+        if (selectedPlacedTower != null && selectedPlacedTower.tower != null) {
+            Tower tower = selectedPlacedTower.tower;
+            int upgradeCost = tower.getUpgradeCost();
+            if (game.getPlayer().getCoins() >= upgradeCost) {
+                game.getPlayer().subtractCoins(upgradeCost);
+                tower.upgrade();
+                repaint();
+            }
+        }
+    }
+
     private void startCountdown() {
         countdown = 10;
         timer = new Timer();
@@ -462,19 +576,110 @@ public class GameCanvas extends JPanel {
                     repaint();
                 } else {
                     timer.cancel();
-                    // Nothing happens after the countdown ends
+                    currentWave = 1;
+                    startEnemyWaves();
                 }
             }
         }, 1000, 1000);
     }
 
+    private void startEnemyWaves() {
+        waveTimer = new Timer();
+        waveTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (currentWave <= totalWaves) {
+                    startWave(currentWave);
+                    currentWave++;
+                } else {
+                    waveTimer.cancel();
+                }
+            }
+        }, 0, 30000); // Adjust the interval as needed for the time between waves
+    }
+
+    private void startWave(int waveNumber) {
+        enemyTimer = new Timer();
+        int enemiesInWave = waveNumber * 3; // Adjust the number of enemies per wave as needed
+        enemyTimer.scheduleAtFixedRate(new TimerTask() {
+            private int enemiesSpawned = 0;
+
+            @Override
+            public void run() {
+                if (enemiesSpawned < enemiesInWave) {
+                    enemies.add(new Enemy(slugImage, new Point(0, 570))); // Spawn a slug at the adjusted starting point
+                    enemiesSpawned++;
+                } else {
+                    enemyTimer.cancel();
+                }
+                repaint();
+            }
+        }, 0, 2000); // Adjust the interval as needed for spawning enemies
+    }
+
+    private void startEnemyMovement() {
+        Timer moveTimer = new Timer();
+        moveTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                for (Enemy enemy : enemies) {
+                    enemy.move();
+                }
+                repaint();
+            }
+        }, 0, 30); // Adjust the interval as needed for smoother movement
+    }
+
     private static class PlacedTower {
+        private final Tower tower;
         private final Image image;
         private final Point position;
 
-        public PlacedTower(Image image, Point position) {
+        public PlacedTower(Tower tower, Image image, Point position) {
+            this.tower = tower;
             this.image = image;
             this.position = position;
+        }
+
+        public boolean contains(int x, int y) {
+            Rectangle bounds = new Rectangle(position.x - 50, position.y - 50, 140, 140);
+            return bounds.contains(x, y);
+        }
+    }
+
+    private static class Enemy {
+        private final Image image;
+        private final Point position;
+        private int waypointIndex;
+        private final Point[] waypoints;
+
+        public Enemy(Image image, Point position) {
+            this.image = image;
+            this.position = position;
+            this.waypointIndex = 0;
+            this.waypoints = new Point[]{
+                    new Point(200, 570),
+                    new Point(200, 220),
+                    new Point(600, 220),
+                    new Point(600, 830),
+                    new Point(1130, 830),
+                    new Point(1130,500),
+                    new Point(2000,500)// This point is off the screen, to remove the enemy
+            };
+        }
+
+        public void move() {
+            if (waypointIndex < waypoints.length) {
+                Point target = waypoints[waypointIndex];
+                if (position.x < target.x) position.x += 2;
+                if (position.x > target.x) position.x -= 2;
+                if (position.y < target.y) position.y += 2;
+                if (position.y > target.y) position.y -= 2;
+
+                if (position.equals(target)) {
+                    waypointIndex++;
+                }
+            }
         }
     }
 }

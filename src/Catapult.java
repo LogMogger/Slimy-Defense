@@ -1,5 +1,4 @@
 public class Catapult extends Tower {
-
     public Catapult() {
         super(500, 5.0, 20, 2.0, 4000, false);
     }
@@ -10,6 +9,7 @@ public class Catapult extends Tower {
 
     @Override
     public void upgrade() {
+        if (this.level >= 4) return; // Cap at level 4
         super.upgrade();
         if (this.level == 2) {
             this.damage = 600;
@@ -31,4 +31,3 @@ public class Catapult extends Tower {
         }
     }
 }
-

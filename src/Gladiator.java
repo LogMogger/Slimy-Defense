@@ -1,5 +1,4 @@
 public class Gladiator extends Tower {
-
     public Gladiator() {
         super(12, 1.6, 2, 0.0, 10, false);
     }
@@ -10,6 +9,7 @@ public class Gladiator extends Tower {
 
     @Override
     public void upgrade() {
+        if (this.level >= 4) return; // Cap at level 4
         super.upgrade();
         if (this.level == 2) {
             this.damage = 12;
@@ -29,5 +29,3 @@ public class Gladiator extends Tower {
         }
     }
 }
-
-

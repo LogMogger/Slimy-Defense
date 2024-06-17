@@ -1,5 +1,4 @@
 public class FireMage extends Tower {
-
     public FireMage() {
         super(4, 0.1, 5, 0.0, 500, true); // Firemage starts with hidden detection, might remove hidden detection later?
     }
@@ -10,6 +9,7 @@ public class FireMage extends Tower {
 
     @Override
     public void upgrade() {
+        if (this.level >= 4) return; // Cap at level 4
         super.upgrade();
         if (this.level == 2) {
             this.damage = 8;
@@ -28,5 +28,3 @@ public class FireMage extends Tower {
         }
     }
 }
-
-

@@ -5,15 +5,15 @@ public class Main {
     public static void main(String[] args) {
         // Create the game components
         List<Location> waypoints = List.of(
-                new Location(0, 250, null),
-                new Location(300, 250, null),
-                new Location(300, 450, null),
-                new Location(600, 450, null),
-                new Location(600, 250, null),
-                new Location(900, 250, null)
+                new Location(0, 250),
+                new Location(300, 250),
+                new Location(300, 450),
+                new Location(600, 450),
+                new Location(600, 250),
+                new Location(900, 250)
         );
         Map map = new Map(48, 27, waypoints);
-        WaveManager waveManager = new WaveManager(10, 1.0f);
+        WaveManager waveManager = new WaveManager(10, 1.0);
         Player player = new Player(100, 100);
         Game game = new Game(map, waveManager, player);
 

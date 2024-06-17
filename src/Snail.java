@@ -14,7 +14,7 @@ public class Snail extends Enemy {
     @Override
     public void attack(Base base) {
         // Implement the attack logic specific to Snail
-        base.decreaseHealth(2); // Example: Decrease base health by 2
+        base.decreaseHealth(health); // Example: Decrease base health by 2
         System.out.println("Snail attacks.");
     }
 

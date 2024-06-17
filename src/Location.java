@@ -3,10 +3,10 @@ public class Location {
     private int y;
     private Grid grid;
 
-    public Location(int x, int y, Grid grid) {
+    public Location(int x, int y) {
         this.grid = grid;
-        if (grid != null && !grid.isValidPosition(x, y)) {
-            throw new IllegalArgumentException("Invalid position");
+        if (grid != null) {
+            grid.isValidPosition(x, y);
         }
         this.x = x;
         this.y = y;
