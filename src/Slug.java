@@ -16,7 +16,7 @@ public class Slug extends Enemy {
     public void attack(Base base) {
         // Implement the attack logic specific to Slug
         // For simplicity, let's just decrease the base health
-        base.decreaseHealth(1); // Example: Decrease base health by 1
+        base.decreaseHealth(health); // Example: Decrease base health by 1
         System.out.println("Slug attacks.");
     }
 
