@@ -1,0 +1,406 @@
+@startuml
+class Archer extends Tower {
+    Archer()
+    void attack()
+    void upgrade()
+}
+
+class Base {
+    - int health
+    Base(int health)
+    void decreaseHealth(int amount)
+    int getHealth()
+}
+
+class Blobfish extends Enemy {
+    Blobfish(int health, double speed, int coinsOnKill, boolean isHidden, Path path)
+    void move()
+    void attack(Base base)
+    void render()
+}
+
+class Bomber extends Tower {
+    Bomber()
+    void attack()
+    void upgrade()
+}
+
+class Cannon extends Tower {
+    Cannon()
+    void attack()
+    void upgrade()
+}
+
+class Catapult extends Tower {
+    Catapult()
+    void attack()
+    void upgrade()
+}
+
+class Cell {
+    - boolean isOccupied
+    - CellType type
+    Cell(CellType type)
+    boolean isOccupied()
+    void setOccupied(boolean occupied)
+    CellType getType()
+    void setType(CellType type)
+}
+
+enum CellType {
+    EMPTY
+}
+
+class CreditsScreen {
+    void displayCredits()
+    void BackButton()
+}
+
+enum Difficulty {
+    EASY
+    MEDIUM
+}
+
+abstract class Enemy {
+    - int health
+    - double speed
+    - int coinsOnKill
+    - boolean isHidden
+    - Path path
+    - Location currentPosition
+    Enemy(int health, double speed, int coinsOnKill, boolean isHidden, Path path)
+    Location getCurrentPosition()
+    void setCurrentPosition(Location location)
+    boolean isAlive()
+    abstract void move()
+    abstract void attack(Base base)
+    abstract void render()
+}
+
+class FireMage extends Tower {
+    FireMage()
+    void attack()
+    void upgrade()
+}
+
+class Game {
+    - Map currentMap
+    - WaveManager waveManager
+    - Player player
+    Game(Map map, WaveManager waveManager, Player player)
+    Map getCurrentMap()
+    WaveManager getWaveManager()
+    Player getPlayer()
+    void setDifficulty(Difficulty difficulty)
+}
+
+class GameCanvas {
+    - Game game
+    - String currentScreen
+    - Image easyMapImage
+    - Image mediumMapImage
+    - Image archerImage
+    - Image gladiatorImage
+    - Image bomberImage
+    - Image cannonImage
+    - Image fireMageImage
+    - Image catapultImage
+    - Image slugImage
+    - Image snailImage
+    - Image wormImage
+    - Image snakeImage
+    - Image bigSlugImage
+    - Image bigSnailImage
+    - Image bigWormImage
+    - Image bigSnakeImage
+    - Image blobfishImage
+    - Image enragedBlobfishImage
+    - String selectedTower
+    - Point selectedTowerPosition
+    - Image selectedTowerImage
+    - List<PlacedTower> placedTowers
+    - List<Enemy> enemies
+    - PlacedTower selectedPlacedTower
+    - JButton playButton
+    - JButton howToPlayButton
+    - JButton creditsButton
+    - JButton backButton
+    - JButton easyButton
+    - JButton mediumButton
+    - JButton upgradeButton
+    - JButton goBackToMenuButton
+    - int countdown
+    - Timer timer
+    - Timer waveTimer
+    - Timer moveTimer
+    - Timer attackTimer
+    - int currentWave
+    - int totalWaves
+    - int baseHealth
+    GameCanvas(Game game)
+    void setCurrentScreen(String screen)
+}
+
+class GameController {
+    - GameState State
+    - InputHandler inputHandler
+    GameController()
+    void startGame()
+    void pauseGame()
+    void resumeGame()
+    void endGame()
+}
+
+enum GameState {
+    MAIN_MENU
+    PLAYING
+    PAUSED
+    GAME_OVER
+}
+
+class Gladiator extends Tower {
+    Gladiator()
+    void attack()
+    void upgrade()
+}
+
+class Grid {
+    - int width
+    - int height
+    - Cell[][] cells
+    Grid(int width, int height)
+    boolean isValidPosition(int x, int y)
+    Cell getCell(int x, int y)
+    void occupyCell(Location location, CellType type)
+    void freeCell(Location location)
+    int getWidth()
+    int getHeight()
+    boolean isCellAvailable(Location location)
+}
+
+class GUIManager {
+    - HUD hud
+    - TowerPanel towerPanel
+    - TowerSelectionPanel towerSelectionPanel
+    - MainMenu mainMenu
+    - MapSelectionScreen mapSelectionScreen
+    - CreditsScreen creditsScreen
+    - HowToPlayScreen howToPlayScreen
+    GUIManager()
+    void showMenu(String menuName)
+    void hideMenu(String menuName)
+    void updateHUD(Player player)
+    void openTowerPanel(Tower tower)
+    void updateTowerSelectionPanel()
+    void displayMainMenu()
+    void displayMapSelectionScreen()
+    void displayHowToPlayScreen()
+    void displayCreditsScreen()
+}
+
+class HowToPlayScreen {
+    void displayInstructions()
+    void handleBackButton()
+}
+
+class HUD {
+    void updateHUD(Player player)
+}
+
+class ImageManager {
+    - Map<String, Image> mapImages
+    - Map<String, Image> towerImages
+    - Map<String, Image> enemyImages
+    ImageManager()
+    Image loadImage(String filePath)
+    Image getMapImage(String mapName)
+    Image getTowerImage(String towerName, String state)
+    Image getEnemyImage(String enemyName)
+    void addMapImage(String mapName, String filePath)
+    void addTowerImage(String towerName, String state, String filePath)
+    void addEnemyImage(String enemyName, String filePath)
+}
+
+class InputHandler {
+    void handleMouseClick(Location position)
+    void handleKeyPress(String key)
+}
+
+class Location {
+    - int x
+    - int y
+    - Grid grid
+    Location(int x, int y)
+    int getX()
+    void setX(int x)
+    int getY()
+    void setY(int y)
+    void move(int deltaX, int deltaY)
+}
+
+class MainMenu {
+    void displayMenu()
+    void handlePlayButton()
+    void handleHowToPlayButton()
+    void handleCreditsButton()
+}
+
+class Map {
+    - Grid grid
+    - Path path
+    - Location baseLocation
+    Map(int width, int height, List<Location> waypoints)
+    Grid getGrid()
+    Path getPath()
+    boolean isLocationOnPath(Location location)
+    boolean isLocationValid(Location location)
+    boolean isLocationAvailable(Location location)
+    void occupyLocation(Location location, CellType type)
+    void freeLocation(Location location)
+    Location getBaseLocation()
+}
+
+class MapSelectionScreen {
+    void displayMapSelection()
+    void handleEasyButton()
+    void handleMediumButton()
+    void handleBackButton()
+}
+
+class MoneyManager {
+    - int currentMoney
+    MoneyManager(int initialMoney)
+    void addMoney(int amount)
+    boolean spendMoney(int amount)
+    int getMoney()
+    void displayMoney()
+}
+
+class Path {
+    - List<Location> waypoints
+    Path(List<Location> waypoints)
+    Location getStart()
+    Location getNextLocation(Location currentLocation, double speed)
+    boolean isOnPath(Location location)
+}
+
+class Player {
+    - int health
+    - int coins
+    - List<Tower> towers
+    Player(int health, int coins)
+    int getHealth()
+    void setHealth(int health)
+    int getCoins()
+    void setCoins(int coins)
+    void addCoins(int amount)
+    void subtractCoins(int amount)
+    List<Tower> getTowers()
+    void addTower(Tower tower)
+    void removeTower(Tower tower)
+}
+
+class Slug extends Enemy {
+    Slug(int health, double speed, int coinsOnKill, boolean isHidden, Path path)
+    void move()
+    void attack(Base base)
+    void render()
+}
+
+class Snail extends Enemy {
+    Snail(int health, double speed, int coinsOnKill, boolean isHidden, Path path)
+    void move()
+    void attack(Base base)
+    void render()
+}
+
+class Snake extends Enemy {
+    Snake(int health, double speed, int coinsOnKill, boolean isHidden, Path path)
+    void move()
+    void attack(Base base)
+    void render()
+}
+
+abstract class Tower {
+    - int level
+    - int damage
+    - double fireRate
+    - double range
+    - double splashAOE
+    - int upgradeCost
+    - boolean canDetectHidden
+    - Location location
+    Tower(int damage, double fireRate, double range, double splashAOE, int upgradeCost, boolean canDetectHidden)
+    int getLevel()
+    int getDamage()
+    double getFireRate()
+    double getRange()
+    double getSplashAOE()
+    int getUpgradeCost()
+    boolean canDetectHidden()
+    void setLocation(Location location)
+    Location getLocation()
+    void upgrade()
+    abstract void attack()
+}
+
+class TowerPanel {
+    - Tower selectedTower
+    void updatePanel(Tower tower)
+    void displayTowerInfo()
+    void upgradeTower()
+}
+
+class TowerSelectionPanel {
+    - List<Tower> towers
+    TowerSelectionPanel()
+    void displayTowerOptions()
+    Tower selectTower(String towerName)
+}
+
+class Vector {
+    - double x
+    - double y
+    Vector(double x, double y)
+    double getX()
+    void setX(double x)
+    double getY()
+    void setY(double y)
+    double getMagnitude()
+    Vector normalize()
+    Vector add(Vector other)
+    Vector subtract(Vector other)
+    Vector multiply(double scalar)
+}
+
+class Wave {
+    - List<Enemy> enemies
+    Wave(List<Enemy> enemies)
+    List<Enemy> getEnemies()
+    boolean isAlive()
+}
+
+class WaveManager {
+    - List<Wave> waves
+    - int currentWaveIndex
+    - int totalWaves
+    - double spawnInterval
+    - Timer waveTimer
+    - boolean waveInProgress
+    WaveManager(int totalWaves, double spawnInterval)
+    void startWave()
+    void checkWaveCompletion()
+    int getCurrentWaveIndex()
+    int getTotalWaves()
+    List<Wave> getWaves()
+}
+
+class Worm extends Enemy {
+    Worm(int health, double speed, int coinsOnKill, boolean isHidden, Path path)
+    void move()
+    void attack(Base base)
+    void render()
+}
+@enduml
+
+
