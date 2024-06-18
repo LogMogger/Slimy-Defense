@@ -22,17 +22,16 @@ public class Game {
     }
 
     public void setDifficulty(Difficulty difficulty) {
-        switch (difficulty) {
-            case EASY:
-                player.setCoins(100000);
-                player.setHealth(100);
-                waveManager = new WaveManager(7, 1.0f);
-                break;
-            case MEDIUM:
-                player.setCoins(100000);
-                player.setHealth(100);
-                waveManager = new WaveManager(15, 0.8f);
-                break;
+        if (difficulty == Difficulty.EASY) {
+            player.setCoins(100);
+            player.setHealth(100);
+            waveManager = new WaveManager(7, 1);
+        } else {
+            if (difficulty == Difficulty.MEDIUM) {
+                player.setCoins(300);
+                player.setHealth(300);
+                waveManager = new WaveManager(15, 1);
+            }
         }
     }
 }

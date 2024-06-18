@@ -7,17 +7,17 @@ public class Slug extends Enemy {
     @Override
     public void move() {
         currentPosition.setX(currentPosition.getX() + (int)speed);
-        System.out.println("Slug moves with speed: " + this.speed);
+
     }
 
     @Override
     public void attack(Base base) {
         base.decreaseHealth(health);
-        System.out.println("Slug attacks.");
+
     }
 
     @Override
     public void render() {
-        System.out.println("Rendering Slug at position: " + currentPosition);
+
     }
 }

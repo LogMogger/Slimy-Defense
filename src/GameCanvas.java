@@ -30,6 +30,7 @@ public class GameCanvas extends JPanel {
     private Image enragedBlobfishImage;
     private String selectedTower;
     private Point selectedTowerPosition;
+    private Image selectedTowerImage;
     private List<PlacedTower> placedTowers;
     private List<Enemy> enemies;
     private PlacedTower selectedPlacedTower;
@@ -41,13 +42,17 @@ public class GameCanvas extends JPanel {
     private JButton easyButton;
     private JButton mediumButton;
     private JButton upgradeButton;
+    private JButton goBackToMenuButton;
 
     private int countdown = 10;
     private Timer timer;
     private Timer waveTimer;
+    private Timer moveTimer;
+    private Timer attackTimer;
 
     private int currentWave = 0;
     private int totalWaves = 0;
+    private int baseHealth = 100;
 
     private final Point[] easyWaypoints = {
             new Point(200, 570),
@@ -75,11 +80,9 @@ public class GameCanvas extends JPanel {
         setPreferredSize(new Dimension(1920, 1080));
         setLayout(null);
 
-        // Load map images
         easyMapImage = loadImage("easy_map.png");
         mediumMapImage = loadImage("medium_map.png");
 
-        // Load tower images
         archerImage = loadImage("archer.png");
         gladiatorImage = loadImage("gladiator.png");
         bomberImage = loadImage("bomber.png");
@@ -87,7 +90,6 @@ public class GameCanvas extends JPanel {
         fireMageImage = loadImage("fireMage.png");
         catapultImage = loadImage("catapult.png");
 
-        // Load enemy images
         slugImage = loadImage("slug.png");
         snailImage = loadImage("snail.png");
         wormImage = loadImage("worm.png");
@@ -99,7 +101,6 @@ public class GameCanvas extends JPanel {
         blobfishImage = loadImage("blobfish.png");
         enragedBlobfishImage = loadImage("enraged_blobfish.png");
 
-        // Initialize buttons
         playButton = createButton("Play", 200);
         howToPlayButton = createButton("How to Play", 250);
         creditsButton = createButton("Credits", 300);
@@ -107,8 +108,8 @@ public class GameCanvas extends JPanel {
         easyButton = createButton("Easy", 200);
         mediumButton = createButton("Medium", 250);
         upgradeButton = createButton("Upgrade", getWidth() - 250);
+        goBackToMenuButton = createButton("Go Back to Menu", getHeight() / 2 + 100);
 
-        // Add action listeners
         playButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 setCurrentScreen("MapSelection");
@@ -150,6 +151,12 @@ public class GameCanvas extends JPanel {
                 handleUpgradeTower();
             }
         });
+        goBackToMenuButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                resetGame();
+                setCurrentScreen("MainMenu");
+            }
+        });
 
         add(playButton);
         add(howToPlayButton);
@@ -158,11 +165,13 @@ public class GameCanvas extends JPanel {
         add(easyButton);
         add(mediumButton);
         add(upgradeButton);
+        add(goBackToMenuButton);
 
         backButton.setVisible(false);
         easyButton.setVisible(false);
         mediumButton.setVisible(false);
         upgradeButton.setVisible(false);
+        goBackToMenuButton.setVisible(false);
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -170,10 +179,24 @@ public class GameCanvas extends JPanel {
                 handleMousePressed(e);
             }
         });
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                handleMouseMoved(e);
+            }
+        });
 
         updateButtons();
 
         startEnemyMovement();
+        startTowerAttacks();
+    }
+
+    private void handleMouseMoved(MouseEvent e) {
+        if (selectedTower != null) {
+            selectedTowerPosition = e.getPoint();
+            repaint();
+        }
     }
 
     private JButton createButton(String text, int yPosition) {
@@ -199,55 +222,53 @@ public class GameCanvas extends JPanel {
         easyButton.setBounds(centerX, 200, 200, 50);
         mediumButton.setBounds(centerX, 250, 200, 50);
         upgradeButton.setBounds(size.width - 310, size.height - 30, 300, 30);
+        goBackToMenuButton.setBounds(centerX, getHeight() / 2 + 100, 200, 50);
 
-        switch (currentScreen) {
-            case "MainMenu":
-                playButton.setVisible(true);
-                howToPlayButton.setVisible(true);
-                creditsButton.setVisible(true);
-                backButton.setVisible(false);
-                easyButton.setVisible(false);
-                mediumButton.setVisible(false);
-                upgradeButton.setVisible(false);
-                break;
-            case "MapSelection":
-                playButton.setVisible(false);
-                howToPlayButton.setVisible(false);
-                creditsButton.setVisible(false);
-                backButton.setVisible(true);
-                easyButton.setVisible(true);
-                mediumButton.setVisible(true);
-                upgradeButton.setVisible(false);
-                break;
-            case "HowToPlay":
-            case "Credits":
-                playButton.setVisible(false);
-                howToPlayButton.setVisible(false);
-                creditsButton.setVisible(false);
-                backButton.setVisible(true);
-                easyButton.setVisible(false);
-                mediumButton.setVisible(false);
-                upgradeButton.setVisible(false);
-                break;
-            case "GameEasy":
-            case "GameMedium":
-                playButton.setVisible(false);
-                howToPlayButton.setVisible(false);
-                creditsButton.setVisible(false);
-                backButton.setVisible(true);
-                easyButton.setVisible(false);
-                mediumButton.setVisible(false);
-                upgradeButton.setVisible(selectedPlacedTower != null && selectedPlacedTower.tower.getLevel() < 4);
-                break;
-            default:
-                playButton.setVisible(true);
-                howToPlayButton.setVisible(true);
-                creditsButton.setVisible(true);
-                backButton.setVisible(false);
-                easyButton.setVisible(false);
-                mediumButton.setVisible(false);
-                upgradeButton.setVisible(false);
-                break;
+        if (currentScreen.equals("MainMenu")) {
+            playButton.setVisible(true);
+            howToPlayButton.setVisible(true);
+            creditsButton.setVisible(true);
+            backButton.setVisible(false);
+            easyButton.setVisible(false);
+            mediumButton.setVisible(false);
+            upgradeButton.setVisible(false);
+            goBackToMenuButton.setVisible(false);
+        } else if (currentScreen.equals("MapSelection")) {
+            playButton.setVisible(false);
+            howToPlayButton.setVisible(false);
+            creditsButton.setVisible(false);
+            backButton.setVisible(true);
+            easyButton.setVisible(true);
+            mediumButton.setVisible(true);
+            upgradeButton.setVisible(false);
+            goBackToMenuButton.setVisible(false);
+        } else if (currentScreen.equals("HowToPlay") || currentScreen.equals("Credits")) {
+            playButton.setVisible(false);
+            howToPlayButton.setVisible(false);
+            creditsButton.setVisible(false);
+            backButton.setVisible(true);
+            easyButton.setVisible(false);
+            mediumButton.setVisible(false);
+            upgradeButton.setVisible(false);
+            goBackToMenuButton.setVisible(false);
+        } else if (currentScreen.equals("GameEasy") || currentScreen.equals("GameMedium")) {
+            playButton.setVisible(false);
+            howToPlayButton.setVisible(false);
+            creditsButton.setVisible(false);
+            backButton.setVisible(false);
+            easyButton.setVisible(false);
+            mediumButton.setVisible(false);
+            upgradeButton.setVisible(selectedPlacedTower != null && selectedPlacedTower.tower.getLevel() < 4);
+            goBackToMenuButton.setVisible(false);
+        } else {
+            playButton.setVisible(true);
+            howToPlayButton.setVisible(true);
+            creditsButton.setVisible(true);
+            backButton.setVisible(false);
+            easyButton.setVisible(false);
+            mediumButton.setVisible(false);
+            upgradeButton.setVisible(false);
+            goBackToMenuButton.setVisible(false);
         }
     }
 
@@ -271,40 +292,30 @@ public class GameCanvas extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        switch (currentScreen) {
-            case "MainMenu":
-                drawMainMenu(g);
-                break;
-            case "MapSelection":
-                drawMapSelection(g);
-                break;
-            case "HowToPlay":
-                drawHowToPlay(g);
-                break;
-            case "Credits":
-                drawCredits(g);
-                break;
-            case "GameEasy":
-                drawGameMap(g, easyMapImage);
-                drawHUD(g);
-                drawCountdown(g);
-                drawTowerSelectionPanel(g);
-                drawPlacedTowers(g);
-                drawEnemies(g);
-                drawTowerUpgradePanel(g);
-                break;
-            case "GameMedium":
-                drawGameMap(g, mediumMapImage);
-                drawHUD(g);
-                drawCountdown(g);
-                drawTowerSelectionPanel(g);
-                drawPlacedTowers(g);
-                drawEnemies(g);
-                drawTowerUpgradePanel(g);
-                break;
-            default:
-                drawMainMenu(g);
-                break;
+        if (currentScreen.equals("MainMenu")) {
+            drawMainMenu(g);
+        } else if (currentScreen.equals("MapSelection")) {
+            drawMapSelection(g);
+        } else if (currentScreen.equals("HowToPlay")) {
+            drawHowToPlay(g);
+        } else if (currentScreen.equals("Credits")) {
+            drawCredits(g);
+        } else if (currentScreen.equals("GameEasy") || currentScreen.equals("GameMedium")) {
+            drawGameMap(g, currentScreen.equals("GameEasy") ? easyMapImage : mediumMapImage);
+            drawHUD(g);
+            drawCountdown(g);
+            drawTowerSelectionPanel(g);
+            drawPlacedTowers(g);
+            drawEnemies(g);
+            drawTowerUpgradePanel(g);
+            drawSelectedTowerImage(g);
+            if (baseHealth <= 0) {
+                drawLoseMessage(g);
+            } else if (currentWave >= totalWaves && enemies.isEmpty()) {
+                drawWinMessage(g);
+            }
+        } else {
+            drawMainMenu(g);
         }
     }
 
@@ -351,7 +362,7 @@ public class GameCanvas extends JPanel {
                 "2. Select the difficulty you want to play, easy or medium.",
                 "3. You will be thrown into the game, and tasked with killing all enemies before they reach your base.",
                 "4. Place and upgrade your towers with your starting cash during the 10-second countdown. Don't worry, you will make more cash later.",
-                "5. You can place towers by selecting their image from the tower selection panel when in game, you can then click on where you want to place the tower on the map, keep in mind, you cannot place towers on spots such as water or the path.",
+                "5. You can place towers by selecting their image from the tower selection panel when in game, you can then click anywhere you want to place the tower on the map",
                 "6. To upgrade towers, click on the tower and a different panel will show up, where a certain amount of cash is needed to upgrade the tower. When you upgrade a tower, it becomes stronger!",
                 "7. Enemies will spawn from the 'spawn point', towers attack enemies within their range. When a tower depletes the enemy's health, the enemy dies and disappears.",
                 "8. Earn money by passing waves to place more towers or upgrade existing ones. The waves will slowly get harder the farther you get into the game.",
@@ -397,7 +408,7 @@ public class GameCanvas extends JPanel {
     private void drawHUD(Graphics g) {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 24));
-        g.drawString("Health: " + game.getPlayer().getHealth(), 10, 20);
+        g.drawString("Health: " + baseHealth, 10, 20);
         g.drawString("Coins: " + game.getPlayer().getCoins(), 10, 50);
         g.drawString("Waves: " + currentWave + "/" + totalWaves, 10, 80);
     }
@@ -440,7 +451,37 @@ public class GameCanvas extends JPanel {
     private void drawEnemies(Graphics g) {
         for (Enemy enemy : enemies) {
             g.drawImage(enemy.image, enemy.position.x, enemy.position.y, enemy.size.width, enemy.size.height, this);
+            drawEnemyHealthBar(g, enemy); // Draw the health bar
+            drawEnemyName(g, enemy); // Draw the enemy name
         }
+    }
+
+    private void drawEnemyHealthBar(Graphics g, Enemy enemy) {
+        int barWidth = enemy.size.width;
+        int barHeight = 10;
+        int x = enemy.position.x;
+        int y = enemy.position.y - barHeight - 5;
+
+        // Calculate health percentage
+        double healthPercentage = enemy.health / enemy.maxHealth;
+
+        // Draw the background (black) bar
+        g.setColor(Color.BLACK);
+        g.fillRect(x, y, barWidth, barHeight);
+
+        // Draw the foreground (red) bar
+        g.setColor(Color.RED);
+        g.fillRect(x, y, (int) (barWidth * healthPercentage), barHeight);
+    }
+
+    private void drawEnemyName(Graphics g, Enemy enemy) {
+        int x = enemy.position.x;
+        int y = enemy.position.y - enemy.size.height + 60;
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        String enemyName = enemy.getClass().getSimpleName();
+        int nameWidth = g.getFontMetrics().stringWidth(enemyName);
+        g.drawString(enemyName, x + (enemy.size.width - nameWidth) / 2, y);
     }
 
     private void drawTowerUpgradePanel(Graphics g) {
@@ -469,6 +510,30 @@ public class GameCanvas extends JPanel {
         }
     }
 
+    private void drawLoseMessage(Graphics g) {
+        g.setColor(Color.RED);
+        g.setFont(new Font("Arial", Font.BOLD, 72));
+        String loseMessage = "You lose!";
+        int messageWidth = g.getFontMetrics().stringWidth(loseMessage);
+        g.drawString(loseMessage, (getWidth() - messageWidth) / 2, getHeight() / 2);
+        goBackToMenuButton.setVisible(true); // Show the button when game is over
+    }
+
+    private void drawWinMessage(Graphics g) {
+        g.setColor(Color.GREEN);
+        g.setFont(new Font("Arial", Font.BOLD, 72));
+        String winMessage = "You win!";
+        int messageWidth = g.getFontMetrics().stringWidth(winMessage);
+        g.drawString(winMessage, (getWidth() - messageWidth) / 2, getHeight() / 2);
+        goBackToMenuButton.setVisible(true); // Show the button when game is over
+    }
+
+    private void drawSelectedTowerImage(Graphics g) { // Added method to draw selected tower image
+        if (selectedTowerImage != null && selectedTowerPosition != null) {
+            g.drawImage(selectedTowerImage, selectedTowerPosition.x - 75, selectedTowerPosition.y - 75, 150, 150, this);
+        }
+    }
+
     private void handleMousePressed(MouseEvent e) {
         if (currentScreen.equals("GameEasy") || currentScreen.equals("GameMedium")) {
             int mouseX = e.getX();
@@ -488,6 +553,7 @@ public class GameCanvas extends JPanel {
                 } else if (mouseY >= getHeight() - 330 - 40 && mouseY <= getHeight() - 330) {
                     selectedTower = "Catapult";
                 }
+                selectedTowerImage = getTowerImage(selectedTower); // Set the selected tower image
                 selectedTowerPosition = e.getPoint();
                 repaint();
             } else {
@@ -511,6 +577,7 @@ public class GameCanvas extends JPanel {
                             tower.setLocation(new Location(selectedTowerPosition.x, selectedTowerPosition.y));
                             placedTowers.add(new PlacedTower(tower, towerImage, selectedTowerPosition));
                             selectedTower = null;
+                            selectedTowerImage = null; // Reset the selected tower image
                             selectedTowerPosition = null;
                         }
                     }
@@ -521,59 +588,56 @@ public class GameCanvas extends JPanel {
     }
 
     private Image getTowerImage(String towerType) {
-        switch (towerType) {
-            case "Archer":
-                return archerImage;
-            case "Gladiator":
-                return gladiatorImage;
-            case "Bomber":
-                return bomberImage;
-            case "Cannon":
-                return cannonImage;
-            case "Fire Mage":
-                return fireMageImage;
-            case "Catapult":
-                return catapultImage;
-            default:
-                return null;
+        if (towerType.equals("Archer")) {
+            return archerImage;
+        } else if (towerType.equals("Gladiator")) {
+            return gladiatorImage;
+        } else if (towerType.equals("Bomber")) {
+            return bomberImage;
+        } else if (towerType.equals("Cannon")) {
+            return cannonImage;
+        } else if (towerType.equals("Fire Mage")) {
+            return fireMageImage;
+        } else if (towerType.equals("Catapult")) {
+            return catapultImage;
+        } else {
+            return null;
         }
     }
 
     private int getTowerCost(String towerType) {
-        switch (towerType) {
-            case "Archer":
-                return 25;
-            case "Gladiator":
-                return 15;
-            case "Bomber":
-                return 40;
-            case "Cannon":
-                return 400;
-            case "Fire Mage":
-                return 2500;
-            case "Catapult":
-                return 4000;
-            default:
-                return 0;
+        if (towerType.equals("Archer")) {
+            return 25;
+        } else if (towerType.equals("Gladiator")) {
+            return 15;
+        } else if (towerType.equals("Bomber")) {
+            return 40;
+        } else if (towerType.equals("Cannon")) {
+            return 400;
+        } else if (towerType.equals("Fire Mage")) {
+            return 2500;
+        } else if (towerType.equals("Catapult")) {
+            return 4000;
+        } else {
+            return 0;
         }
     }
 
     private Tower createTower(String towerType) {
-        switch (towerType) {
-            case "Archer":
-                return new Archer();
-            case "Gladiator":
-                return new Gladiator();
-            case "Bomber":
-                return new Bomber();
-            case "Cannon":
-                return new Cannon();
-            case "Fire Mage":
-                return new FireMage();
-            case "Catapult":
-                return new Catapult();
-            default:
-                return null;
+        if (towerType.equals("Archer")) {
+            return new Archer();
+        } else if (towerType.equals("Gladiator")) {
+            return new Gladiator();
+        } else if (towerType.equals("Bomber")) {
+            return new Bomber();
+        } else if (towerType.equals("Cannon")) {
+            return new Cannon();
+        } else if (towerType.equals("Fire Mage")) {
+            return new FireMage();
+        } else if (towerType.equals("Catapult")) {
+            return new Catapult();
+        } else {
+            return null;
         }
     }
 
@@ -621,12 +685,13 @@ public class GameCanvas extends JPanel {
                         waypoints = mediumWaypoints;
                     }
                     generateEnemiesForWave(currentScreen, currentWave, spawnPoint, waypoints);
+                    rewardCoinsForWave(currentWave, currentScreen);
                     repaint();
                 } else {
                     waveTimer.cancel();
                 }
             }
-        }, 0, 15000);
+        }, 0, 16000);
     }
 
     private void generateEnemiesForWave(String currentScreen, int waveNumber, Point spawnPoint, Point[] waypoints) {
@@ -645,12 +710,13 @@ public class GameCanvas extends JPanel {
                 }
             } else if (waveNumber == 4) {
                 for (int i = 0; i < 1; i++) {
-                    enemies.add(new Snake(bigSlugImage, spawnPoint, waypoints));
+                    enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
+                    enemies.add(new Snail(snailImage, spawnPoint, waypoints));
                 }
             } else if (waveNumber == 5) {
-                enemies.add(new BigSlug(bigSnailImage, spawnPoint, waypoints));
+                enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
                 for (int i = 0; i < 1; i++) {
-                    enemies.add(new Snake(snailImage, spawnPoint, waypoints));
+                    enemies.add(new Snail(snailImage, spawnPoint, waypoints));
                 }
             } else if (waveNumber == 6) {
                 enemies.add(new Blobfish(blobfishImage, spawnPoint, waypoints));
@@ -658,35 +724,35 @@ public class GameCanvas extends JPanel {
         } else if (currentScreen.equals("GameMedium")) {
             if (waveNumber == 1) {
                 for (int i = 0; i < 1; i++) {
-                    enemies.add(new Snail(wormImage, spawnPoint, waypoints));
+                    enemies.add(new Snail(snailImage, spawnPoint, waypoints));
                 }
             } else if (waveNumber == 2) {
                 for (int i = 0; i < 1; i++) {
-                    enemies.add(new Snail(snakeImage, spawnPoint, waypoints));
+                    enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
                 }
             } else if (waveNumber == 3) {
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 1; i++) {
                     enemies.add(new Worm(wormImage, spawnPoint, waypoints));
+                    enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
                 }
             } else if (waveNumber == 4) {
                 enemies.add(new BigSnail(bigSnailImage, spawnPoint, waypoints));
             } else if (waveNumber == 5) {
                 enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
                 for (int i = 0; i < 1; i++) {
-                    enemies.add(new Snake(snakeImage, spawnPoint, waypoints));
+                    enemies.add(new Snail(snailImage, spawnPoint, waypoints));
                 }
             } else if (waveNumber == 6) {
                 enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
             } else if (waveNumber == 7) {
                 enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
-                enemies.add(new BigSlug(snailImage, spawnPoint, waypoints));
+                enemies.add(new BigSlug(bigSlugImage, spawnPoint, waypoints));
             } else if (waveNumber == 8) {
-                    enemies.add(new BigWorm(bigSnakeImage, spawnPoint, waypoints));
-
+                enemies.add(new BigWorm(bigWormImage, spawnPoint, waypoints));
             } else if (waveNumber == 9) {
                 enemies.add(new BigSnake(bigSnakeImage, spawnPoint, waypoints));
                 for (int i = 0; i < 2; i++) {
-                    enemies.add(new Snake(snailImage, spawnPoint, waypoints));
+                    enemies.add(new Snail(snailImage, spawnPoint, waypoints));
                 }
             } else if (waveNumber == 10) {
                 enemies.add(new EnragedBlobfish(enragedBlobfishImage, spawnPoint, waypoints));
@@ -694,17 +760,104 @@ public class GameCanvas extends JPanel {
         }
     }
 
+    private void rewardCoinsForWave(int waveNumber, String difficulty) {
+        int coins = 0;
+        if (difficulty.equals("GameEasy")) {
+            if (waveNumber == 1) {
+                coins = 30;
+            } else if (waveNumber == 2) {
+                coins = 80;
+            } else if (waveNumber == 3) {
+                coins = 150;
+            } else if (waveNumber == 4) {
+                coins = 250;
+            } else if (waveNumber == 5) {
+                coins = 650;
+            } else if (waveNumber == 6) {
+                coins = 1500;
+            }
+        } else if (difficulty.equals("GameMedium")) {
+            if (waveNumber == 1) {
+                coins = 30;
+            } else if (waveNumber == 2) {
+                coins = 50;
+            } else if (waveNumber == 3) {
+                coins = 150;
+            } else if (waveNumber == 4) {
+                coins = 230;
+            } else if (waveNumber == 5) {
+                coins = 400;
+            } else if (waveNumber == 6) {
+                coins = 700;
+            } else if (waveNumber == 7) {
+                coins = 1100;
+            } else if (waveNumber == 8) {
+                coins = 1250;
+            } else if (waveNumber == 9) {
+                coins = 2000;
+            } else if (waveNumber == 10) {
+                coins = 2600;
+            }
+        }
+        game.getPlayer().addCoins(coins);
+        repaint();
+    }
+
     private void startEnemyMovement() {
-        Timer moveTimer = new Timer();
+        moveTimer = new Timer();
         moveTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 for (Enemy enemy : enemies) {
                     enemy.move();
+                    if (enemy.position.x > getWidth()) {
+                        baseHealth -= enemy.health;
+                        enemies.remove(enemy);
+                        if (baseHealth <= 0) {
+                            gameOver();
+                        }
+                    }
                 }
                 repaint();
             }
         }, 0, 30);
+    }
+
+    private void startTowerAttacks() {
+        attackTimer = new Timer();
+        attackTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                for (PlacedTower placedTower : placedTowers) {
+                    Tower tower = placedTower.tower;
+                    for (Enemy enemy : enemies) {
+                        enemy.takeDamage(tower.getDamage());
+                        if (enemy.isDead()) {
+                            enemies.remove(enemy);
+                            break;
+                        }
+                    }
+                }
+                repaint();
+            }
+        }, 0, 1000);
+    }
+
+    private void gameOver() {
+        moveTimer.cancel();
+        attackTimer.cancel();
+    }
+
+    private void resetGame() {
+        placedTowers.clear();
+        enemies.clear();
+        currentWave = 0;
+        baseHealth = 100;
+        countdown = 10;
+        game.getPlayer();
+        startEnemyMovement();
+        startTowerAttacks();
+        repaint();
     }
 
     private static class PlacedTower {
@@ -731,14 +884,18 @@ public class GameCanvas extends JPanel {
         protected int waypointIndex;
         protected Dimension size;
         protected double speed;
+        protected double health;
+        protected double maxHealth;
 
-        public Enemy(Image image, Point position, Point[] waypoints, Dimension size, double speed) {
+        public Enemy(Image image, Point position, Point[] waypoints, Dimension size, double speed, double health) {
             this.image = image;
             this.position = position;
             this.waypoints = waypoints;
             this.waypointIndex = 0;
             this.size = size;
             this.speed = speed;
+            this.health = health;
+            this.maxHealth = health;
         }
 
         public void move() {
@@ -754,65 +911,73 @@ public class GameCanvas extends JPanel {
                 }
             }
         }
+
+        public void takeDamage(double damage) {
+            this.health -= damage;
+        }
+
+        public boolean isDead() {
+            return this.health <= 0;
+        }
     }
 
     private static class Slug extends Enemy {
         public Slug(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(100, 100), 2);
+            super(image, position, waypoints, new Dimension(100, 100), 2, 100);
         }
     }
 
     private static class Snail extends Enemy {
         public Snail(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(100, 100), 1.5);
+            super(image, position, waypoints, new Dimension(100, 100), 1.5, 200);
         }
     }
 
     private static class Worm extends Enemy {
         public Worm(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(100, 100), 2);
+            super(image, position, waypoints, new Dimension(100, 100), 2, 400);
         }
     }
 
     private static class Snake extends Enemy {
         public Snake(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(100, 100), 2.5);
+            super(image, position, waypoints, new Dimension(100, 100), 2.5, 500);
         }
     }
 
     private static class BigSlug extends Enemy {
         public BigSlug(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(150, 150), 2);
+            super(image, position, waypoints, new Dimension(150, 150), 2, 2000);
         }
     }
 
     private static class BigSnail extends Enemy {
         public BigSnail(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(150, 150), 1.5);
+            super(image, position, waypoints, new Dimension(150, 150), 1.5, 4000);
         }
     }
 
     private static class BigWorm extends Enemy {
         public BigWorm(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(150, 150), 2);
+            super(image, position, waypoints, new Dimension(150, 150), 2, 8500);
         }
     }
 
     private static class BigSnake extends Enemy {
         public BigSnake(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(150, 150), 2.5);
+            super(image, position, waypoints, new Dimension(150, 150), 2.5, 11000);
         }
     }
 
     private static class Blobfish extends Enemy {
         public Blobfish(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(200, 200), 1.25);
+            super(image, position, waypoints, new Dimension(200, 200), 1.25, 25000);
         }
     }
 
     private static class EnragedBlobfish extends Enemy {
         public EnragedBlobfish(Image image, Point position, Point[] waypoints) {
-            super(image, position, waypoints, new Dimension(200, 200), 1.25);
+            super(image, position, waypoints, new Dimension(200, 200), 1.25, 45000);
         }
     }
 }

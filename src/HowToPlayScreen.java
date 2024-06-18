@@ -14,6 +14,6 @@ public class HowToPlayScreen {
     }
 
     public void handleBackButton() {
-        System.out.println("Returning to main menu...");
+        System.out.println("Returning to main menu");
     }
 }

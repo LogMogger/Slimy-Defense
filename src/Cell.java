@@ -23,11 +23,6 @@ public class Cell {
         this.type = type;
     }
 
-    @Override
-    public String toString() {
-        return "Cell{" +
-                "isOccupied=" + isOccupied +
-                ", type=" + type +
-                '}';
-    }
+
+
 }

@@ -56,11 +56,11 @@ public abstract class Tower {
 
     public void upgrade() {
         this.level++;
-        this.damage *= 1.5;
-        this.fireRate *= 0.9;
-        this.range += 2;
-        this.splashAOE *= 1.2;
-        this.upgradeCost *= 2;
+        this.damage *= 1;
+        this.fireRate *= 1;
+        this.range += 1;
+        this.splashAOE *= 1;
+        this.upgradeCost *= 1;
         this.canDetectHidden = this.canDetectHidden || (level >= 3);
     }
 

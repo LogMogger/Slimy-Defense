@@ -7,17 +7,16 @@ public class Blobfish extends Enemy {
     @Override
     public void move() {
         currentPosition.setX(currentPosition.getX() + (int)speed);
-        System.out.println("Blobfish moves with speed: " + this.speed);
+
     }
 
     @Override
     public void attack(Base base) {
         base.decreaseHealth(5);
-        System.out.println("Blobfish attacks.");
     }
 
     @Override
-    public void render() {
-        System.out.println("Rendering Blobfish at position: " + currentPosition);
+    public void render(){
+
     }
 }

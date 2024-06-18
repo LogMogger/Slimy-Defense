@@ -7,17 +7,14 @@ public class Snail extends Enemy {
     @Override
     public void move() {
         currentPosition.setX(currentPosition.getX() + (int)speed);
-        System.out.println("Snail moves with speed: " + this.speed);
     }
 
     @Override
     public void attack(Base base) {
         base.decreaseHealth(health);
-        System.out.println("Snail attacks.");
     }
 
     @Override
     public void render() {
-        System.out.println("Rendering Snail at position: " + currentPosition);
     }
 }

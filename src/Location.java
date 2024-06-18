@@ -60,11 +60,4 @@ public class Location {
         return 31 * x + y;
     }
 
-    @Override
-    public String toString() {
-        return "Location{" +
-                "x=" + x +
-                ", y=" + y +
-                '}';
-    }
 }
